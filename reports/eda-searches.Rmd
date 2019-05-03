@@ -26,17 +26,31 @@ buscas %>%
     ggplot(aes(x = results)) + 
     geom_histogram(binwidth = 5) 
 ```
-
 ```{r}
-zeros = buscas %>% select(results, group, session_start_date) %>% mutate(date = floor_date(session_start_date, 'day'))
-
-zeros_week =  zeros %>%  group_by(date, group) %>% 
-    summarise(zeros_results_day = sum(results == 0), total = n()) %>%  mutate(rate = zeros_results_day/total)
-
-glimpse(zeros_week)
+buscas %>% 
+    ggplot(aes(x = session_start_date, y = results)) +
+    geom_point(alpha = .5)
 ```
 
 ```{r}
-zeros_week %>% distinct(date)
+zeros = buscas %>% select(results, group, session_start_date) %>% mutate(day_date = date(session_start_date))
+
+zeros_per_week =  zeros %>%  group_by(day_date, group) %>% 
+    summarise(zeros_results_day = sum(results == 0), total_results = n()) %>%  mutate(proportion = (zeros_results_day/total_results) * 100)
+
+glimpse(zeros_per_week)
+```
+
+```{r}
+zeros_per_week %>% distinct(day_date)
+```
+
+```{r}
+zeros_per_week %>%  
+    ggplot(aes(x = day_date, y = proportion, color = group)) + 
+    geom_point() + geom_line() + scale_x_date() + labs (
+        x = "Dia",
+        y = "Zero resultados / Total de resultados"
+    )
 ```
 
