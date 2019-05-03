@@ -17,10 +17,26 @@ theme_set(theme_bw())
 ```{r ETL}
 buscas = read_csv(here::here("data/search_data.csv"))
 ```
+```{r}
+glimpse(buscas)
+```
 
 ```{r}
 buscas %>% 
     ggplot(aes(x = results)) + 
     geom_histogram(binwidth = 5) 
+```
+
+```{r}
+zeros = buscas %>% select(results, group, session_start_date) %>% mutate(date = floor_date(session_start_date, 'day'))
+
+zeros_week =  zeros %>%  group_by(date, group) %>% 
+    summarise(zeros_results_day = sum(results == 0), total = n()) %>%  mutate(rate = zeros_results_day/total)
+
+glimpse(zeros_week)
+```
+
+```{r}
+zeros_week %>% distinct(date)
 ```
 
