@@ -22,11 +22,23 @@ glimpse(buscas)
 ```
 
 ```{r}
-clicks_aux = buscas %>% select(session_id, session_start_date, group, num_clicks) %>%
-    mutate(day_date = floor_date(session_start_date, unit = "day"))
+session_id_clicks <- buscas %>%
+    group_by(session_id) %>%
+    mutate(day_date = floor_date(session_start_date, unit = "day")) %>%
+    select(session_id, group, num_clicks, day_date) %>%
+    summarise(nclicks = sum(num_clicks))
+    #ungroup()
+    glimpse(session_id_clicks)
 
-#glimpse(clicks_per_day)
+session_id_clicks2 <- session_id_clicks %>%
+    group_by(day_date, group) %>%
+    summarise(num_sessions = sum(!is.na(session_id)),
+              zero_clicks = sum(num_clicks == 0),
+              gt_zero_clicks = sum(num_clicks > 0))
+
+glimpse(session_id_clicks)
 ```
+
 ```{r}
 buscas %>% 
     ggplot(aes(x = session_start_date, y = results)) +
@@ -51,8 +63,9 @@ zeros_per_week %>% filter(group == "a") %>%
     ggplot(aes(x = day_date, y = total_results)) + 
     geom_col(mapping = aes(fill = "Total de buscas")) + 
     geom_text(aes(label = total_results, y = total_results), size = 3, hjust = 5) +
-    geom_col(data = zeros_per_week, mapping = aes(y = zeros_results_day, fill = "Zero resultados")) +      geom_text(aes(label = zeros_results_day, y = zeros_results_day), size = 3) +
-     scale_x_date(date_labels = "%d-%b-%Y", breaks = zeros_per_week$day_date) +
+    geom_col(data = zeros_per_week, mapping = aes(y = zeros_results_day, fill = "Zero resultados")) +      
+    geom_text(aes(label = zeros_results_day, y = zeros_results_day), size = 3) +
+    scale_x_date(date_labels = "%d-%b-%Y", breaks = zeros_per_week$day_date) +
     coord_flip() +
     labs(
         title = "Grupo 'A'",
@@ -67,8 +80,9 @@ zeros_per_week %>% filter(group == "b") %>%
     ggplot(aes(x = day_date, y = total_results)) + 
     geom_col(mapping = aes(fill = "Total de buscas")) + 
     geom_text(aes(label = total_results, y = total_results), size = 3, hjust = 4) +
-    geom_col(data = zeros_per_week, mapping = aes(y = zeros_results_day, fill = "Zero resultados")) +      geom_text(aes(label = zeros_results_day, y = zeros_results_day), size = 3) +
-     scale_x_date(date_labels = "%d-%b-%Y", breaks = zeros_per_week$day_date) +
+    geom_col(data = zeros_per_week, mapping = aes(y = zeros_results_day, fill = "Zero resultados")) +      
+    geom_text(aes(label = zeros_results_day, y = zeros_results_day), size = 3) +
+    scale_x_date(date_labels = "%d-%b-%Y", breaks = zeros_per_week$day_date) +
     coord_flip() +
     labs(
         title = "Grupo 'B'",
