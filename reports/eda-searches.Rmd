@@ -22,9 +22,10 @@ glimpse(buscas)
 ```
 
 ```{r}
-buscas %>% 
-    ggplot(aes(x = results)) + 
-    geom_histogram(binwidth = 5) 
+clicks_aux = buscas %>% select(session_id, session_start_date, group, num_clicks) %>%
+    mutate(day_date = floor_date(session_start_date, unit = "day"))
+
+#glimpse(clicks_per_day)
 ```
 ```{r}
 buscas %>% 
@@ -46,11 +47,44 @@ zeros_per_week %>% distinct(day_date)
 ```
 
 ```{r}
+zeros_per_week %>% filter(group == "a") %>%
+    ggplot(aes(x = day_date, y = total_results)) + 
+    geom_col(mapping = aes(fill = "Total de buscas")) + 
+    geom_text(aes(label = total_results, y = total_results), size = 3, hjust = 5) +
+    geom_col(data = zeros_per_week, mapping = aes(y = zeros_results_day, fill = "Zero resultados")) +      geom_text(aes(label = zeros_results_day, y = zeros_results_day), size = 3) +
+     scale_x_date(date_labels = "%d-%b-%Y", breaks = zeros_per_week$day_date) +
+    coord_flip() +
+    labs(
+        title = "Grupo 'A'",
+        x = "Dia",
+        y = "Zero resultados / Total de resultados",
+        fill = "Legenda"
+    ) + theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+zeros_per_week %>% filter(group == "b") %>%
+    ggplot(aes(x = day_date, y = total_results)) + 
+    geom_col(mapping = aes(fill = "Total de buscas")) + 
+    geom_text(aes(label = total_results, y = total_results), size = 3, hjust = 4) +
+    geom_col(data = zeros_per_week, mapping = aes(y = zeros_results_day, fill = "Zero resultados")) +      geom_text(aes(label = zeros_results_day, y = zeros_results_day), size = 3) +
+     scale_x_date(date_labels = "%d-%b-%Y", breaks = zeros_per_week$day_date) +
+    coord_flip() +
+    labs(
+        title = "Grupo 'B'",
+        x = "Dia",
+        y = "Zero resultados / Total de resultados",
+        fill = "Legenda"
+    ) + theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
 zeros_per_week %>%  
     ggplot(aes(x = day_date, y = proportion, color = group)) + 
-    geom_point() + geom_line() + scale_x_date() + labs (
+    geom_point() + geom_line() + labs (
         x = "Dia",
-        y = "Zero resultados / Total de resultados"
+        y = "Zero resultados / Total de resultados (%)",
+        color = "Grupo"
     )
 ```
 
