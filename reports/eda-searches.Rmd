@@ -22,28 +22,41 @@ glimpse(buscas)
 ```
 
 ```{r}
-session_id_clicks <- buscas %>%
-    group_by(session_id) %>%
+buscas %>% 
+    ggplot(aes(x = session_start_date, y = num_clicks)) +
+    geom_point(alpha = .3)
+```
+
+
+```{r}
+session_id_clicks <- buscas %>% 
     mutate(day_date = floor_date(session_start_date, unit = "day")) %>%
-    select(session_id, group, num_clicks, day_date) %>%
-    summarise(nclicks = sum(num_clicks))
-    #ungroup()
-    glimpse(session_id_clicks)
+    #filter(day_date != date("2016-03-08")) %>%
+    group_by(session_id, day_date, group) %>%
+    summarise(nclicks = sum(num_clicks), nsessions = n())
+#    glimpse(session_id_clicks)
 
 session_id_clicks2 <- session_id_clicks %>%
     group_by(day_date, group) %>%
-    summarise(num_sessions = sum(!is.na(session_id)),
-              zero_clicks = sum(num_clicks == 0),
-              gt_zero_clicks = sum(num_clicks > 0))
-
-glimpse(session_id_clicks)
+    summarise(zero_clicks = sum(nclicks == 0))
+glimpse(session_id_clicks2)
 ```
 
 ```{r}
-buscas %>% 
-    ggplot(aes(x = session_start_date, y = results)) +
-    geom_point(alpha = .5)
+session_id_clicks2 %>% 
+    #filter(day_date != date("2016-03-08")) %>%
+    ggplot(aes(x = day_date, y = zero_clicks, color = group)) + 
+    geom_point() + geom_line()
 ```
+
+```{r}
+session_id_clicks %>%
+    group_by(day_date, group) %>%
+    mutate(ctr = sum(nclicks) / sum(nsessions)) %>%
+    ggplot() +
+    geom_col(aes(x = day_date, y = ctr, fill = group), position = "dodge")
+```
+
 
 ```{r}
 zeros = buscas %>% select(results, group, session_start_date) %>% mutate(day_date = date(session_start_date))
