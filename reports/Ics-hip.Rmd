@@ -97,6 +97,6 @@ theta_embaralhado(buscas_hp)
 ```
 
 ```{r}
-diffs = replicate(5000, {theta_embaralhado(buscas_ic)})
-mean(abs(diffs) >= abs(theta_diferenca_ab(buscas_ic, 1:NROW(buscas_ic))))
+diffs = replicate(5000, {theta_embaralhado(buscas_hp)})
+mean(abs(diffs) >= abs(theta_diferenca_ab(buscas_hp, 1:NROW(buscas_hp))))
 ```
