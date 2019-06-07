@@ -28,7 +28,8 @@ buscas = read_csv(here::here("data/search_data.csv"))
 buscas_ic = buscas %>% 
     mutate(day_date = floor_date(session_start_date, unit = "day")) %>%
     group_by(session_id, day_date, group) %>%
-    summarise(nclicks = sum(num_clicks), nsessions = n())
+    summarise(nclicks = sum(num_clicks), nsessions = n()) %>%
+    ungroup()
 
 #buscas_ic = buscas_ic %>%
 #    group_by(day_date, group) #%>%
@@ -61,30 +62,41 @@ theta_c_ab
 
 ```{r}
 buscas_ic %>% 
-    boot(statistic = theta_diferenca_ab, R = 1000) %>% 
+    boot(statistic = theta_diferenca_ab, R = 4000) %>% 
     tidy(conf.level = 0.95, 
          conf.int = TRUE)
 ```
 
 ## Com teste de hipótese
 
-# ```{r}
-# theta_embaralhado = function(d){
-#     clickt_rate = d %>% 
-#         mutate(grupo_embaralhado = sample(group, n())) %>% 
-#         group_by(grupo_embaralhado) %>% 
-#         summarise(ctr = sum(nclicks) / sum(nsessions)) 
-#     
-#     ga = clickt_rate %>% filter(grupo_embaralhado == "a") %>% pull(ctr)
-#     gb = clickt_rate %>% filter(grupo_embaralhado == "b") %>% pull(ctr)
-#     
-#     ga - gb
-# }
-# 
-# theta_embaralhado(buscas_ic)
-# ```
+```{r}
+buscas_hp = buscas %>% 
+    mutate(day_date = floor_date(session_start_date, unit = "day")) %>%
+    group_by(session_id, day_date, group) %>%
+    summarise(nclicks = sum(num_clicks), nsessions = n()) %>%
+    ungroup()
 
-# ```{r}
-# diffs = replicate(5000, {theta_embaralhado(buscas_ic)})
-# mean(abs(diffs) >= abs(theta_diferenca_ab(buscas_ic, 1:NROW(buscas_ic))))
-# ```
+glimpse(buscas_hp)
+```
+
+
+```{r}
+theta_embaralhado = function(d){
+    clickt_rate = d %>%
+        mutate(grupo_embaralhado = sample(group, n())) %>%
+        group_by(grupo_embaralhado) %>%
+        summarise(ctr = sum(nclicks) / sum(nsessions))
+
+    ga = clickt_rate %>% filter(grupo_embaralhado == "a") %>% pull(ctr)
+    gb = clickt_rate %>% filter(grupo_embaralhado == "b") %>% pull(ctr)
+
+    ga - gb
+}
+
+theta_embaralhado(buscas_hp)
+```
+
+```{r}
+diffs = replicate(5000, {theta_embaralhado(buscas_ic)})
+mean(abs(diffs) >= abs(theta_diferenca_ab(buscas_ic, 1:NROW(buscas_ic))))
+```
